@@ -8,3 +8,23 @@
 2026-09-16 14:03:27,496 - INFO - Assertion passed: 'Google' in title
 2026-09-16 14:03:27,560 - INFO - Screenshot saved: C:\Users\sachi\Downloads\Python_Project\CI_CD_Project\my-playwright-ci-project/screenshots/google_20260916_140327.png
 2026-09-16 14:03:27,598 - INFO - Browser closed
+2026-09-16 17:11:40,571 - INFO - Starting test_example
+2026-09-16 17:11:40,571 - INFO - Starting test_example
+2026-09-16 17:11:45,408 - INFO - Navigated to example.com
+2026-09-16 17:11:45,408 - INFO - Navigated to example.com
+2026-09-16 17:11:45,527 - INFO - Assertion passed
+2026-09-16 17:11:45,527 - INFO - Assertion passed
+2026-09-16 17:11:45,604 - INFO - Screenshot saved: C:\Users\sachi\Downloads\Python_Project\CI_CD_Project\my-playwright-ci-project\screenshots\test_example_20260916_171145.png
+2026-09-16 17:11:45,604 - INFO - Screenshot saved: C:\Users\sachi\Downloads\Python_Project\CI_CD_Project\my-playwright-ci-project\screenshots\test_example_20260916_171145.png
+2026-09-16 17:11:45,673 - INFO - Browser closed
+2026-09-16 17:11:45,673 - INFO - Browser closed
+2026-09-16 17:11:45,710 - INFO - Starting test_google
+2026-09-16 17:11:45,710 - INFO - Starting test_google
+2026-09-16 17:11:48,420 - INFO - Navigated to google.com
+2026-09-16 17:11:48,420 - INFO - Navigated to google.com
+2026-09-16 17:11:48,443 - INFO - Assertion passed
+2026-09-16 17:11:48,443 - INFO - Assertion passed
+2026-09-16 17:11:48,520 - INFO - Screenshot saved: C:\Users\sachi\Downloads\Python_Project\CI_CD_Project\my-playwright-ci-project\screenshots\test_google_20260916_171148.png
+2026-09-16 17:11:48,520 - INFO - Screenshot saved: C:\Users\sachi\Downloads\Python_Project\CI_CD_Project\my-playwright-ci-project\screenshots\test_google_20260916_171148.png
+2026-09-16 17:11:48,580 - INFO - Browser closed
+2026-09-16 17:11:48,580 - INFO - Browser closed

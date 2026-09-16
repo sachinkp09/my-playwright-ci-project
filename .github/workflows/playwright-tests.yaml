@@ -2,54 +2,66 @@ name: Playwright Tests
 
 on:
   push:
-    branches: [ "main" ]        # CI runs on every push to main
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]        # CI runs on PRs targeting main
+    branches: [ "main" ]
 
 jobs:
   test:
-    runs-on: ubuntu-latest       # GitHub Actions runner (Linux)
-
-    env:
-      PYTHONPATH: ${{ env.PYTHONPATH }}   # REQUIRED: ensures Python sees your src/ folder
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4           # Pulls your code into the CI machine
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.10"            # Python version for CI
+        python-version: "3.10"
 
+    # ---------------------------------------------------------
+    # IMPORTANT:
+    # This step CREATES the PYTHONPATH value inside $GITHUB_ENV.
+    # You do NOT need to "find" PYTHONPATH anywhere.
+    # GitHub Actions builds it dynamically using $(pwd).
+    # ---------------------------------------------------------
     - name: Add project root to PYTHONPATH
-      run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
-      # CRITICAL FIX:
-      # This ensures CI can import: from src.logger import get_logger
+      run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+
+    # ---------------------------------------------------------
+    # IMPORTANT:
+    # This step LOADS the PYTHONPATH value created above.
+    # It MUST come AFTER the echo step.
+    # This was the part causing your error.
+    # ---------------------------------------------------------
+    - name: Load PYTHONPATH
+      run: echo "PYTHONPATH is now: $PYTHONPATH"
 
     - name: Ensure artifact folders exist
       run: |
-        mkdir -p screenshots               # Create screenshot folder in CI
-        mkdir -p logs                      # Create logs folder in CI
+        mkdir -p screenshots
+        mkdir -p logs
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pytest
         pip install playwright
-        playwright install --with-deps     # Install browsers
+        playwright install --with-deps
 
     - name: Run tests
-      run: pytest                          # Executes your Python tests
+      env:
+        PYTHONPATH: ${{ env.PYTHONPATH }}   # <-- Correct location
+      run: pytest
 
     - name: Upload screenshots
       uses: actions/upload-artifact@v4
       with:
         name: screenshots
-        path: screenshots/                 # Uploads screenshot files
+        path: screenshots/
 
     - name: Upload logs
       uses: actions/upload-artifact@v4
       with:
         name: logs
-        path: logs/                        # Uploads log files
+        path: logs/
