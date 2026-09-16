@@ -1,0 +1,10 @@
+2026-09-16 14:03:22,284 - INFO - Starting test_example
+2026-09-16 14:03:26,051 - INFO - Navigated to example.com
+2026-09-16 14:03:26,055 - INFO - Assertion passed: title is 'Example Domain'
+2026-09-16 14:03:26,095 - INFO - Screenshot saved: C:\Users\sachi\Downloads\Python_Project\CI_CD_Project\my-playwright-ci-project/screenshots/test_example_20260916_140326.png
+2026-09-16 14:03:26,123 - INFO - Browser closed
+2026-09-16 14:03:26,134 - INFO - Starting test_google_homepage
+2026-09-16 14:03:27,490 - INFO - Navigated to google.com
+2026-09-16 14:03:27,496 - INFO - Assertion passed: 'Google' in title
+2026-09-16 14:03:27,560 - INFO - Screenshot saved: C:\Users\sachi\Downloads\Python_Project\CI_CD_Project\my-playwright-ci-project/screenshots/google_20260916_140327.png
+2026-09-16 14:03:27,598 - INFO - Browser closed
