@@ -38,13 +38,17 @@ jobs:
       run: pytest
 
     - name: Upload screenshots
+      if: ${{ always() }}
       uses: actions/upload-artifact@v4
       with:
         name: screenshots
         path: screenshots/
+        if-no-files-found: warn
 
     - name: Upload logs
+      if: ${{ always() }}
       uses: actions/upload-artifact@v4
       with:
         name: logs
         path: logs/
+        if-no-files-found: warn
