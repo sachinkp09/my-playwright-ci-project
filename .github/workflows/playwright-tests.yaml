@@ -19,23 +19,8 @@ jobs:
       with:
         python-version: "3.10"
 
-    # ---------------------------------------------------------
-    # IMPORTANT:
-    # This step CREATES the PYTHONPATH value inside $GITHUB_ENV.
-    # You do NOT need to "find" PYTHONPATH anywhere.
-    # GitHub Actions builds it dynamically using $(pwd).
-    # ---------------------------------------------------------
     - name: Add project root to PYTHONPATH
       run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
-
-    # ---------------------------------------------------------
-    # IMPORTANT:
-    # This step LOADS the PYTHONPATH value created above.
-    # It MUST come AFTER the echo step.
-    # This was the part causing your error.
-    # ---------------------------------------------------------
-    - name: Load PYTHONPATH
-      run: echo "PYTHONPATH is now: $PYTHONPATH"
 
     - name: Ensure artifact folders exist
       run: |
@@ -50,8 +35,6 @@ jobs:
         playwright install --with-deps
 
     - name: Run tests
-      env:
-        PYTHONPATH: ${{ env.PYTHONPATH }}   # <-- Correct location
       run: pytest
 
     - name: Upload screenshots

@@ -28,3 +28,23 @@
 2026-09-16 17:11:48,520 - INFO - Screenshot saved: C:\Users\sachi\Downloads\Python_Project\CI_CD_Project\my-playwright-ci-project\screenshots\test_google_20260916_171148.png
 2026-09-16 17:11:48,580 - INFO - Browser closed
 2026-09-16 17:11:48,580 - INFO - Browser closed
+2026-09-16 17:14:25,691 - INFO - Starting test_example
+2026-09-16 17:14:25,691 - INFO - Starting test_example
+2026-09-16 17:14:27,379 - INFO - Navigated to example.com
+2026-09-16 17:14:27,379 - INFO - Navigated to example.com
+2026-09-16 17:14:27,402 - INFO - Assertion passed
+2026-09-16 17:14:27,402 - INFO - Assertion passed
+2026-09-16 17:14:27,462 - INFO - Screenshot saved: C:\Users\sachi\Downloads\Python_Project\CI_CD_Project\my-playwright-ci-project\screenshots\test_example_20260916_171427.png
+2026-09-16 17:14:27,462 - INFO - Screenshot saved: C:\Users\sachi\Downloads\Python_Project\CI_CD_Project\my-playwright-ci-project\screenshots\test_example_20260916_171427.png
+2026-09-16 17:14:27,579 - INFO - Browser closed
+2026-09-16 17:14:27,579 - INFO - Browser closed
+2026-09-16 17:14:27,610 - INFO - Starting test_google
+2026-09-16 17:14:27,610 - INFO - Starting test_google
+2026-09-16 17:14:30,291 - INFO - Navigated to google.com
+2026-09-16 17:14:30,291 - INFO - Navigated to google.com
+2026-09-16 17:14:30,298 - INFO - Assertion passed
+2026-09-16 17:14:30,298 - INFO - Assertion passed
+2026-09-16 17:14:30,373 - INFO - Screenshot saved: C:\Users\sachi\Downloads\Python_Project\CI_CD_Project\my-playwright-ci-project\screenshots\test_google_20260916_171430.png
+2026-09-16 17:14:30,373 - INFO - Screenshot saved: C:\Users\sachi\Downloads\Python_Project\CI_CD_Project\my-playwright-ci-project\screenshots\test_google_20260916_171430.png
+2026-09-16 17:14:30,471 - INFO - Browser closed
+2026-09-16 17:14:30,471 - INFO - Browser closed
