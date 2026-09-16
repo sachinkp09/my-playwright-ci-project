@@ -1,28 +1,27 @@
 import logging
-import os
+from pathlib import Path
 
-def get_logger(name="playwright-tests"):
-    # Ensure logs directory exists
-    os.makedirs("logs", exist_ok=True)
+ROOT_DIR = Path(__file__).resolve().parent.parent
 
-    # Create logger
-    logger = logging.getLogger(name)
+def get_logger():
+    logger = logging.getLogger("playwright-tests")
     logger.setLevel(logging.INFO)
 
-    # Avoid duplicate handlers
-    if not logger.handlers:
-        # Console handler
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
-        console_format = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-        console_handler.setFormatter(console_format)
-        logger.addHandler(console_handler)
+    # Console output
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
 
-        # File handler
-        file_handler = logging.FileHandler("logs/test_log.txt")
-        file_handler.setLevel(logging.INFO)
-        file_format = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-        file_handler.setFormatter(file_format)
-        logger.addHandler(file_handler)
+    # File output
+    log_dir = ROOT_DIR / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    file_handler = logging.FileHandler(log_dir / "test_log.txt")
+    file_handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    console_handler.setFormatter(formatter)
+    file_handler.setFormatter(formatter)
+
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
 
     return logger
