@@ -2,46 +2,54 @@ name: Playwright Tests
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ]        # CI runs on every push to main
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main" ]        # CI runs on PRs targeting main
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest       # GitHub Actions runner (Linux)
+
+    env:
+      PYTHONPATH: ${{ env.PYTHONPATH }}   # REQUIRED: ensures Python sees your src/ folder
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4           # Pulls your code into the CI machine
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: "3.10"
+        python-version: "3.10"            # Python version for CI
+
+    - name: Add project root to PYTHONPATH
+      run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
+      # CRITICAL FIX:
+      # This ensures CI can import: from src.logger import get_logger
 
     - name: Ensure artifact folders exist
       run: |
-        mkdir -p screenshots
-        mkdir -p logs
+        mkdir -p screenshots               # Create screenshot folder in CI
+        mkdir -p logs                      # Create logs folder in CI
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pytest
         pip install playwright
-        playwright install --with-deps
+        playwright install --with-deps     # Install browsers
 
     - name: Run tests
-      run: pytest
+      run: pytest                          # Executes your Python tests
 
     - name: Upload screenshots
       uses: actions/upload-artifact@v4
       with:
         name: screenshots
-        path: screenshots/
+        path: screenshots/                 # Uploads screenshot files
 
     - name: Upload logs
       uses: actions/upload-artifact@v4
       with:
         name: logs
-        path: logs/
+        path: logs/                        # Uploads log files

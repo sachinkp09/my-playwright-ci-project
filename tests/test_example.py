@@ -5,15 +5,16 @@ from playwright.sync_api import sync_playwright
 from src.logger import get_logger
 import os
 
+# ROOT_DIR = project root
 ROOT_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(ROOT_DIR))
+sys.path.append(str(ROOT_DIR))   # Helps local runs; CI uses PYTHONPATH
 
 logger = get_logger()
 
 def test_example():
     logger.info("Starting test_example")
 
-    # Ensure folders exist
+    # Ensure screenshot folder exists (works in CI + local)
     os.makedirs(ROOT_DIR / "screenshots", exist_ok=True)
 
     with sync_playwright() as p:
@@ -25,6 +26,7 @@ def test_example():
         assert page.title() == "Example Domain"
         logger.info("Assertion passed")
 
+        # Save screenshot
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         screenshot_path = ROOT_DIR / "screenshots" / f"test_example_{timestamp}.png"
         page.screenshot(path=str(screenshot_path))

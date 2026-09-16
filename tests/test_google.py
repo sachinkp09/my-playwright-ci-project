@@ -24,6 +24,7 @@ def test_google():
         assert "Google" in page.title()
         logger.info("Assertion passed")
 
+        # Save screenshot
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         screenshot_path = ROOT_DIR / "screenshots" / f"test_google_{timestamp}.png"
         page.screenshot(path=str(screenshot_path))
