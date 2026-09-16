@@ -1,4 +1,10 @@
 name: Playwright Tests
+- name: Ensure artifact folders exist
+  run: |
+    mkdir -p screenshots
+    mkdir -p logs
+
+
 
 on:
   push:
