@@ -31,11 +31,13 @@ jobs:
         pip install pytest
         pip install pytest-html
         pip install playwright
+        pip install pytest-xdist
         playwright install --with-deps
 
-    - name: Run Playwright tests
+    - name: Run Playwright tests (parallel)
       run: |
-        pytest --html=reports/report.html --self-contained-html
+       pytest -n auto --html=reports/report.html --self-contained-html
+
 
     - name: Upload screenshots
       if: ${{ always() }}
