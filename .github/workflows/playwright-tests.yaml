@@ -33,6 +33,7 @@ jobs:
         pip install pytest
         pip install pytest-html
         pip install playwright
+        pip install pytest-playwright
         pip install pytest-xdist
         pip install pytest-rerunfailures
         playwright install --with-deps
