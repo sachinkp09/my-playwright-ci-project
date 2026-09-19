@@ -4,12 +4,18 @@ on:
   push:
     branches:
       - "**"
+
   pull_request:
     branches:
       - "**"
+
   workflow_dispatch:
+
   schedule:
-    - cron: "0 1 * * *"   # Nightly regression at 01:00 Munich time
+    - cron: "0 1 * * *"
+
+permissions:
+  contents: write
 
 jobs:
   tests:
@@ -40,20 +46,18 @@ jobs:
         run: |
           sudo npx playwright install-deps
 
-      - name: Install ALL Playwright browsers
+      - name: Install Playwright browsers
         run: |
           playwright install
 
       - name: Run tests
         run: |
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            pytest -m smoke --alluredir=allure-results -n auto --reruns 2
-          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            pytest -m smoke --alluredir=allure-results -n auto --reruns 2
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             pytest -m "smoke or regression" --alluredir=allure-results -n auto --reruns 2
           elif [[ "${{ github.event_name }}" == "schedule" ]]; then
             pytest -m regression --alluredir=allure-results -n auto --reruns 2
+          else
+            pytest -m smoke --alluredir=allure-results -n auto --reruns 2
           fi
 
       - name: Upload Allure results
@@ -68,19 +72,19 @@ jobs:
     needs: tests
 
     steps:
-      - name: Download Allure results (chromium)
+      - name: Download Chromium results
         uses: actions/download-artifact@v4
         with:
           name: allure-results-chromium
           path: allure-results
 
-      - name: Download Allure results (firefox)
+      - name: Download Firefox results
         uses: actions/download-artifact@v4
         with:
           name: allure-results-firefox
           path: allure-results
 
-      - name: Download Allure results (webkit)
+      - name: Download WebKit results
         uses: actions/download-artifact@v4
         with:
           name: allure-results-webkit
@@ -107,22 +111,21 @@ jobs:
 
   deploy-allure:
     name: Deploy Allure Dashboard to GitHub Pages
+    if: github.event_name == 'pull_request' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     needs: build-allure
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Download Allure report
         uses: actions/download-artifact@v4
         with:
           name: allure-report
           path: allure-report
 
-      - name: Deploy to gh-pages
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: allure-report
           publish_branch: gh-pages
+          
