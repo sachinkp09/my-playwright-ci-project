@@ -68,9 +68,22 @@ jobs:
     needs: tests
 
     steps:
-      - name: Download Allure results
+      - name: Download Allure results (chromium)
         uses: actions/download-artifact@v4
         with:
+          name: allure-results-chromium
+          path: allure-results
+
+      - name: Download Allure results (firefox)
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results-firefox
+          path: allure-results
+
+      - name: Download Allure results (webkit)
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results-webkit
           path: allure-results
 
       - name: Install Allure CLI
