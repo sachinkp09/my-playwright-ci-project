@@ -13,6 +13,6 @@ def test_example(page):
     assert page.title() == "Example Domain"
     logger.info("Assertion passed")
 
-    # Optional manual screenshot (Playwright already captures on failure)
+    #  Optional manual screenshot (Playwright already captures on failure)
     page.screenshot(path="screenshots/test_example.png")
     logger.info("Screenshot saved: screenshots/test_example.png")
