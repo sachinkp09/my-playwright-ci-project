@@ -1,0 +1,8 @@
+2026-09-19 15:04:02,090 - INFO - Starting test_example
+2026-09-19 15:04:02,090 - INFO - Starting test_example
+2026-09-19 15:04:02,167 - INFO - Navigated to example.com
+2026-09-19 15:04:02,167 - INFO - Navigated to example.com
+2026-09-19 15:04:02,177 - INFO - Assertion passed
+2026-09-19 15:04:02,177 - INFO - Assertion passed
+2026-09-19 15:04:02,229 - INFO - Screenshot saved: screenshots/test_example.png
+2026-09-19 15:04:02,229 - INFO - Screenshot saved: screenshots/test_example.png
