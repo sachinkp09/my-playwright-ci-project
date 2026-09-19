@@ -1,8 +1,0 @@
-2026-09-19 14:33:32,812 - INFO - Starting test_example
-2026-09-19 14:33:32,812 - INFO - Starting test_example
-2026-09-19 14:33:32,906 - INFO - Navigated to example.com
-2026-09-19 14:33:32,906 - INFO - Navigated to example.com
-2026-09-19 14:33:32,910 - INFO - Assertion passed
-2026-09-19 14:33:32,910 - INFO - Assertion passed
-2026-09-19 14:33:32,965 - INFO - Screenshot saved: screenshots/test_example.png
-2026-09-19 14:33:32,965 - INFO - Screenshot saved: screenshots/test_example.png
