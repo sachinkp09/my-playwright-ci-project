@@ -35,6 +35,13 @@ jobs:
           pip install -r requirements.txt
           pip install pytest-playwright
           pip install allure-pytest
+
+      - name: Install Playwright system dependencies
+        run: |
+          sudo npx playwright install-deps
+
+      - name: Install Playwright browsers
+        run: |
           playwright install ${{ matrix.browser }}
 
       - name: Run tests
