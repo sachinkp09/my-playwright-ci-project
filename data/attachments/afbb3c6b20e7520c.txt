@@ -1,0 +1,4 @@
+INFO     playwright-tests:test_example.py:8 Starting test_example
+INFO     playwright-tests:test_example.py:11 Navigated to example.com
+INFO     playwright-tests:test_example.py:14 Assertion passed
+INFO     playwright-tests:test_example.py:18 Screenshot saved: screenshots/test_example.png
