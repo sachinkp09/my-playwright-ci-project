@@ -1,3 +1,2 @@
 "Status","Start Time","Stop Time","Duration in ms","Parent Suite","Suite","Sub Suite","Test Class","Test Method","Name","Description"
-"passed","Sat Sep 19 15:04:36 UTC 2026","Sat Sep 19 15:04:36 UTC 2026","122","tests","test_example","","","","test_example[chromium]",""
-"passed","Sat Sep 19 15:04:36 UTC 2026","Sat Sep 19 15:04:37 UTC 2026","654","tests","test_google","","","","test_google[chromium]",""
+"passed","Sun Sep 20 05:50:45 UTC 2026","Sun Sep 20 05:50:46 UTC 2026","673","tests","test_google","","","","test_google[chromium]",""
