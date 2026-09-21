@@ -1,8 +1,0 @@
-2026-09-20 05:50:12,916 - INFO - Starting test_google
-2026-09-20 05:50:12,916 - INFO - Starting test_google
-2026-09-20 05:50:13,379 - INFO - Navigated to google.com
-2026-09-20 05:50:13,379 - INFO - Navigated to google.com
-2026-09-20 05:50:13,423 - INFO - Assertion passed
-2026-09-20 05:50:13,423 - INFO - Assertion passed
-2026-09-20 05:50:13,503 - INFO - Screenshot saved: screenshots/test_google.png
-2026-09-20 05:50:13,503 - INFO - Screenshot saved: screenshots/test_google.png
