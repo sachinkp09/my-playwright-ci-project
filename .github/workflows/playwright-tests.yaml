@@ -51,9 +51,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Login to GHCR
+      # Login to GHCR (using your secret TKN)
       - name: Log in to GHCR
-        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+        run: echo "${{ secrets.TKN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
 
       # Build image to push
       - name: Build image for GHCR
