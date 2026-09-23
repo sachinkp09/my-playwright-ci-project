@@ -9,6 +9,10 @@ on:
     branches:
       - main       # run CI when PR targets main
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
 
   tests:
@@ -18,16 +22,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
       # Pull cached image from GHCR (if exists)
       - name: Pull cached image
-        run:  docker pull ghcr.io/${{ secrets.GHCR_USERNAME }}/playwright-tests:latest || echo "No cache found"
+        run: docker pull ghcr.io/${{ github.repository_owner }}/playwright-tests:latest || echo "No cache found"
 
 
       # Build using cache
       - name: Build Docker image using GHCR cache
         run: |
           docker build \
-            --cache-from ghcr.io/${{ secrets.GHCR_USERNAME }}/playwright-tests:latest \
+            --cache-from ghcr.io/${{ github.repository_owner }}/playwright-tests:latest \
             -t playwright-tests:ci .
 
       # Run tests inside Docker
@@ -52,17 +59,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Login to GHCR (using your secret TKN)
+      # Login to GHCR using the built-in Actions token
       - name: Log in to GHCR
-        run: echo "${{ secrets.TKN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       # Build image to push
       - name: Build image for GHCR
-        run: docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/playwright-tests:latest .
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/playwright-tests:latest .
 
       # Push image to GHCR
       - name: Push image to GHCR
-        run: docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/playwright-tests:latest
+        run: docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:latest
 
 
   ai-analysis:
