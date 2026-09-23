@@ -4,12 +4,13 @@ on:
   push:
     branches:
       - "*"        # run CI on all branches
-      - "!main"    # but ignore direct pushes to main
+      - "!main"    # ignore direct pushes to main
   pull_request:
     branches:
       - main       # run CI when PR targets main
 
 jobs:
+
   tests:
     runs-on: ubuntu-latest
 
@@ -17,12 +18,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t playwright-tests:ci .
+      # Pull cached image from GHCR (if exists)
+      - name: Pull cached image
+        run: docker pull ghcr.io/${{ secrets.GHCR_USERNAME }}/playwright-tests:latest || true
 
-      - name: Run Playwright tests inside Docker
+      # Build using cache
+      - name: Build Docker image using GHCR cache
+        run: |
+          docker build \
+            --cache-from ghcr.io/${{ secrets.GHCR_USERNAME }}/playwright-tests:latest \
+            -t playwright-tests:ci .
+
+      # Run tests inside Docker
+      - name: Run Playwright tests
         run: docker run --rm playwright-tests:ci
 
+      # Upload logs (always)
       - name: Upload test logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -30,6 +41,28 @@ jobs:
           name: test-logs
           path: logs/
           if-no-files-found: ignore
+
+
+  push-image:
+    needs: tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Login to GHCR
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+
+      # Build image to push
+      - name: Build image for GHCR
+        run: docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/playwright-tests:latest .
+
+      # Push image to GHCR
+      - name: Push image to GHCR
+        run: docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/playwright-tests:latest
+
 
   ai-analysis:
     needs: tests
