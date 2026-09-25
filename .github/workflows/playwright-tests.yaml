@@ -12,7 +12,6 @@ on:
 permissions:
   contents: read
   packages: write
-  models: read     # Required to authenticate with the GitHub Models platform
 
 jobs:
 
@@ -82,79 +81,38 @@ jobs:
           name: test-logs
           path: logs/
 
-      - name: Run AI Diagnostic via Python
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO_NAME: ${{ github.repository }}
+        - name: Set up Node.js
+        uses: actions/setup-node@v4
+
+        - name: Install GitHub Copilot CLI
+        run: npm install --global @github/copilot
+
+        - name: Prepare AI prompt
         run: |
-          python3 <<'PY'
-          import glob
-          import json
-          import os
-          import urllib.error
-          import urllib.request
+          {
+          echo "You are analyzing a failed Playwright CI run for ${{ github.repository }}."
+          echo "Summarize the failure, identify the most likely root cause, suggest concrete fixes, and point out CI configuration problems. Be concise and distinguish evidence from hypotheses."
+          echo
+          echo "Test logs:"
+          find logs -type f -print -exec sh -c 'echo "--- $1 ---"; cat "$1"' _ {} \; 2>/dev/null || true
+          } > ai-prompt.txt
 
-          log_content = ""
-          for path in glob.glob("logs/**/*", recursive=True):
-            if os.path.isfile(path):
-              try:
-                with open(path, "r", encoding="utf-8", errors="ignore") as file:
-                  log_content += f"\n--- File: {path} ---\n{file.read()}"
-              except OSError:
-                pass
+        - name: Run AI Diagnostic via Copilot
+        id: inference
+        uses: actions/ai-inference@v1
+        with:
+          prompt-file: ai-prompt.txt
+          model: gpt-4.1
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
 
-          if not log_content.strip():
-            log_content = "No clear text log files were found in the test-log artifact."
-
-          prompt = f"""You are analyzing a failed Playwright CI run for {os.environ['REPO_NAME']}.
-          Summarize the failure, identify the most likely root cause, suggest concrete fixes, and point out CI configuration problems. Be concise and distinguish evidence from hypotheses.
-
-          Test logs:
-          {log_content}"""
-
-          body = json.dumps({
-            "model": "openai/gpt-4o-mini",
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.2,
-          }).encode("utf-8")
-
-          request = urllib.request.Request(
-            "https://models.github.ai/inference/chat/completions",
-            data=body,
-            headers={
-              "Accept": "application/vnd.github+json",
-              "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
-              "Content-Type": "application/json",
-              "X-GitHub-Api-Version": "2022-11-28",
-            },
-            method="POST",
-          )
-
-          try:
-            with urllib.request.urlopen(request) as response:
-              response_text = response.read().decode("utf-8")
-          except urllib.error.HTTPError as error:
-            error_text = error.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"GitHub Models returned HTTP {error.code}: {error_text}") from error
-
-          try:
-            response_data = json.loads(response_text)
-          except json.JSONDecodeError as error:
-            raise RuntimeError(f"GitHub Models returned non-JSON data: {response_text[:1000]}") from error
-
-          try:
-            analysis = response_data["choices"][0]["message"]["content"]
-          except (KeyError, IndexError, TypeError) as error:
-            raise RuntimeError(f"Unexpected GitHub Models response: {response_text[:1000]}") from error
-
-          with open("ai-analysis.md", "w", encoding="utf-8") as output_file:
-            output_file.write(analysis)
-
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary_file:
-            summary_file.write("\n### Automated AI Diagnostic Report\n" + analysis + "\n")
-
-          print("Analysis generated and written to the job summary.")
-          PY
+        - name: Save AI analysis
+        run: |
+          cp "${{ steps.inference.outputs.response-file }}" ai-analysis.md
+          {
+          echo "### Automated AI Diagnostic Report"
+          cat ai-analysis.md
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload AI analysis
         if: always()
