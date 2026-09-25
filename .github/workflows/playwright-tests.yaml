@@ -81,13 +81,13 @@ jobs:
           name: test-logs
           path: logs/
 
-        - name: Set up Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
 
-        - name: Install GitHub Copilot CLI
+      - name: Install GitHub Copilot CLI
         run: npm install --global @github/copilot
 
-        - name: Prepare AI prompt
+      - name: Prepare AI prompt
         run: |
           {
           echo "You are analyzing a failed Playwright CI run for ${{ github.repository }}."
@@ -97,7 +97,7 @@ jobs:
           find logs -type f -print -exec sh -c 'echo "--- $1 ---"; cat "$1"' _ {} \; 2>/dev/null || true
           } > ai-prompt.txt
 
-        - name: Run AI Diagnostic via Copilot
+      - name: Run AI Diagnostic via Copilot
         id: inference
         uses: actions/ai-inference@v1
         with:
@@ -106,7 +106,7 @@ jobs:
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
 
-        - name: Save AI analysis
+      - name: Save AI analysis
         run: |
           cp "${{ steps.inference.outputs.response-file }}" ai-analysis.md
           {
