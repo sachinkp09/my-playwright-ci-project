@@ -7,7 +7,7 @@ on:
       - "!main"    # ignore direct pushes to main
   pull_request:
     branches:
-      - main       # run CI when PR targets main
+      - main       #  run CI when PR targets main
 
 permissions:
   contents: read
