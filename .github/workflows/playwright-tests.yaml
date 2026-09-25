@@ -99,10 +99,11 @@ jobs:
 
       - name: Run AI Diagnostic via Copilot
         id: inference
-        uses: actions/ai-inference@v1
+        uses: actions/ai-inference@v3
         with:
           prompt-file: ai-prompt.txt
           model: gpt-4.1
+          token: ${{ secrets.COPILOT_PAT }}
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
 
