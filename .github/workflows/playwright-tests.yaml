@@ -38,6 +38,7 @@ jobs:
       - name: Run Playwright tests
         run: |
           mkdir -p logs
+          chmod 777 logs
           docker run --rm \
             -v "${{ github.workspace }}/logs:/app/logs" \
             playwright-tests:ci
