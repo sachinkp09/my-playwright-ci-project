@@ -12,6 +12,7 @@ on:
 permissions:
   contents: read
   packages: write
+  models: read
 
 jobs:
 
@@ -35,7 +36,11 @@ jobs:
             -t playwright-tests:ci .
 
       - name: Run Playwright tests
-        run: docker run --rm playwright-tests:ci
+        run: |
+          mkdir -p logs
+          docker run --rm \
+            -v "${{ github.workspace }}/logs:/app/logs" \
+            playwright-tests:ci
 
       - name: Upload test logs
         if: always()
@@ -68,9 +73,6 @@ jobs:
     if: failure()
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Download test logs
         uses: actions/download-artifact@v4
         with:
@@ -78,11 +80,46 @@ jobs:
           path: logs/
 
       - name: AI Failure Analysis
-        uses: azure/ai-assistant@v1
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          log_content="$(find logs -type f -print -exec cat {} \; 2>/dev/null || true)"
+          if [ -z "$log_content" ]; then
+            log_content="No test log file was uploaded. Use the workflow context and test output to identify likely causes."
+          fi
+
+          prompt="You are analyzing a failed Playwright CI run for ${{ github.repository }}.
+
+          Summarize the failure, identify the most likely root cause, suggest concrete fixes, and point out any CI configuration problems. Be concise and distinguish evidence from hypotheses.
+
+          Test logs:
+          $log_content"
+
+          request="$(jq -n \
+            --arg prompt "$prompt" \
+            '{model:"openai/gpt-4o-mini",messages:[{role:"user",content:$prompt}],temperature:0.2}')"
+
+          response="$(curl --silent --show-error --fail-with-body \
+            -X POST "https://models.github.ai/inference/chat/completions" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$request")"
+
+          analysis="$(printf '%s' "$response" | jq -r '.choices[0].message.content // empty')"
+          if [ -z "$analysis" ]; then
+            echo "GitHub Models returned no analysis."
+            exit 1
+          fi
+
+          printf '%s\n' "$analysis" | tee ai-analysis.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload AI analysis
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          input: |
-            Analyze Playwright test failures.
-            Summarize logs.
-            Identify root causes.
-            Suggest fixes.
-            Validate CI pipeline steps.
+          name: ai-failure-analysis
+          path: ai-analysis.md
+          if-no-files-found: ignore
