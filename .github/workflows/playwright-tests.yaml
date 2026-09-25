@@ -38,10 +38,12 @@ jobs:
       - name: Run Playwright tests
         run: |
           mkdir -p logs
-          chmod 777 logs
-          docker run --rm \
-            -v "${{ github.workspace }}/logs:/app/logs" \
-            playwright-tests:ci
+          set +e
+          docker run --name playwright-tests-run playwright-tests:ci
+          test_status=$?
+          docker cp playwright-tests-run:/app/logs/. logs/ || true
+          docker rm playwright-tests-run
+          exit $test_status
 
       - name: Upload test logs
         if: always()
