@@ -106,14 +106,24 @@ jobs:
             '{model:"openai/gpt-4o-mini",messages:[{role:"user",content:$prompt}],temperature:0.2}')"
 
           response="$(curl --silent --show-error --fail-with-body \
+            -L \
             -X POST "https://models.github.ai/inference/chat/completions" \
+            -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
             -H "Content-Type: application/json" \
             -d "$request")"
 
+          if ! printf '%s' "$response" | jq empty >/dev/null 2>&1; then
+            echo "GitHub Models returned a non-JSON response:"
+            printf '%s\n' "$response" | head -c 1000
+            exit 1
+          fi
+
           analysis="$(printf '%s' "$response" | jq -r '.choices[0].message.content // empty')"
           if [ -z "$analysis" ]; then
-            echo "GitHub Models returned no analysis."
+            echo "GitHub Models returned no analysis. API response:"
+            printf '%s\n' "$response" | jq -r '.error.message // .error // .' 2>/dev/null || printf '%s\n' "$response"
             exit 1
           fi
 
