@@ -37,6 +37,9 @@ RUN mkdir -p /home/pwuser/.cache/ms-playwright \
     && cp -r /root/.cache/ms-playwright/* /home/pwuser/.cache/ms-playwright/ \
     && chown -R pwuser:pwuser /home/pwuser/.cache
 
+# Create logs directory with correct permissions
+RUN mkdir -p /app/logs && chmod -R 777 /app/logs
+
 # Copy project code
 COPY src/ /app/src/
 COPY tests/ /app/tests/
