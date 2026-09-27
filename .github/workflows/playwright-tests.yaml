@@ -46,17 +46,16 @@ jobs:
         run: |
           mkdir -p logs
 
-          # Run container but keep it alive for log extraction
           set +e
           docker run --name playwright-tests-run \
             -e BUILD_SHA=${{ github.sha }} \
             -e BUILD_ACTOR=${{ github.actor }} \
-            -e BUILD_TIME=$(date) \
             playwright-tests:ci
           test_status=$?
 
           docker cp playwright-tests-run:/app/logs/. logs/ || true
           docker cp playwright-tests-run:/app/metadata.txt logs/ || true
+          docker cp playwright-tests-run:/app/quarantine/. quarantine/ || true
 
           docker rm playwright-tests-run
 
