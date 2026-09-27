@@ -122,7 +122,6 @@ jobs:
 
       - name: Build image
         run: |
-          # Build once
           docker build -t playwright-tests:ci .
 
           # Tag with SHA (immutable)
@@ -134,15 +133,12 @@ jobs:
           # Tag with latest
           docker tag playwright-tests:ci ghcr.io/${{ github.repository_owner }}/playwright-tests:latest
 
-      # Push SHA first (fixes GHCR "unknown blob")
       - name: Push SHA tag
         run: docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:sha-${{ github.sha }}
 
-      # Push main second
       - name: Push main tag
         run: docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:main
 
-      # Push latest last
       - name: Push latest tag
         run: docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:latest
 
@@ -151,12 +147,10 @@ jobs:
         run: |
           DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/${{ github.repository_owner }}/playwright-tests:sha-${{ github.sha }})
           echo "digest=$DIGEST" >> $GITHUB_OUTPUT
-          echo "Image Digest: $DIGEST"
+          echo "$DIGEST" > digest.txt
 
       - name: Upload digest artifact
         uses: actions/upload-artifact@v4
         with:
           name: image-digest
           path: digest.txt
-        run: |
-          echo "${{ steps.digest.outputs.digest }}" > digest.txt
