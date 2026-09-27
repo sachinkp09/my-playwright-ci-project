@@ -22,13 +22,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Instead of downloading quarantine (which may not exist),
-      # we create an empty quarantine file if missing.
+      # Create quarantine file if missing (prevents artifact download errors)
       - name: Prepare quarantine file
         run: |
           mkdir -p quarantine
           if [ ! -f quarantine/quarantined_tests.txt ]; then
-            echo "No previous quarantine file found. Creating empty file."
             echo "" > quarantine/quarantined_tests.txt
           fi
 
@@ -122,8 +120,21 @@ jobs:
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      - name: Build image for GHCR
-        run: docker build -t ghcr.io/${{ github.repository_owner }}/playwright-tests:latest .
+      - name: Build image with version tags
+        run: |
+          # Build once
+          docker build -t ghcr.io/${{ github.repository_owner }}/playwright-tests:latest .
 
-      - name: Push image to GHCR
-        run: docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:latest
+          # Tag for main branch
+          docker tag ghcr.io/${{ github.repository_owner }}/playwright-tests:latest \
+                     ghcr.io/${{ github.repository_owner }}/playwright-tests:main
+
+          # Tag with immutable commit SHA
+          docker tag ghcr.io/${{ github.repository_owner }}/playwright-tests:latest \
+                     ghcr.io/${{ github.repository_owner }}/playwright-tests:sha-${{ github.sha }}
+
+      - name: Push all tags
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:latest
+          docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:main
+          docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:sha-${{ github.sha }}
