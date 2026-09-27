@@ -37,10 +37,10 @@ RUN mkdir -p /home/pwuser/.cache/ms-playwright \
     && cp -r /root/.cache/ms-playwright/* /home/pwuser/.cache/ms-playwright/ \
     && chown -R pwuser:pwuser /home/pwuser/.cache
 
-# Create logs directory with correct permissions
+# Create logs directory
 RUN mkdir -p /app/logs && chmod -R 777 /app/logs
 
-# Create quarantine directory for flaky test quarantine
+# Create quarantine directory
 RUN mkdir -p /app/quarantine && chmod -R 777 /app/quarantine
 
 # Copy project code
@@ -48,16 +48,13 @@ COPY src/ /app/src/
 COPY tests/ /app/tests/
 COPY pytest.ini /app/pytest.ini
 
-# Fix permissions for project folder
+# Fix permissions
 RUN chown -R pwuser:pwuser /app
 
-# -----------------------------
-# CI METADATA (added correctly)
-# -----------------------------
+# Metadata
 RUN echo "BUILD_TIME=$(date)" > /app/metadata.txt \
     && echo "BROWSER=chromium" >> /app/metadata.txt
 
-# Switch to non-root user
 USER pwuser
 
-CMD ["pytest",
+CMD ["pytest", "-q"]

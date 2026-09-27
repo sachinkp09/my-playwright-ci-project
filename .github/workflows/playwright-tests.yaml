@@ -42,7 +42,7 @@ jobs:
             --build-arg GIT_SHA=${{ github.sha }} \
             -t playwright-tests:ci .
 
-      - name: Run Playwright tests (with metadata extraction)
+      - name: Run Playwright tests
         run: |
           mkdir -p logs
 
@@ -55,7 +55,6 @@ jobs:
 
           docker cp playwright-tests-run:/app/logs/. logs/ || true
           docker cp playwright-tests-run:/app/metadata.txt logs/ || true
-          docker cp playwright-tests-run:/app/quarantine/. quarantine/ || true
 
           docker rm playwright-tests-run
 
