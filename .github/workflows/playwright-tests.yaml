@@ -3,11 +3,11 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - "*"        # run CI on all branches
-      - "!main"    # ignore direct pushes to main
+      - "*"
+      - "!main"
   pull_request:
     branches:
-      - main       #  run CI when PR targets main
+      - main
 
 permissions:
   contents: read
@@ -22,6 +22,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Download quarantine file (if exists)
+        uses: actions/download-artifact@v4
+        with:
+          name: quarantine
+          path: quarantine/
+        continue-on-error: true
+
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
@@ -32,16 +39,27 @@ jobs:
         run: |
           docker build \
             --cache-from ghcr.io/${{ github.repository_owner }}/playwright-tests:latest \
+            --build-arg GIT_SHA=${{ github.sha }} \
             -t playwright-tests:ci .
 
-      - name: Run Playwright tests
+      - name: Run Playwright tests (with metadata extraction)
         run: |
           mkdir -p logs
+
+          # Run container but keep it alive for log extraction
           set +e
-          docker run --name playwright-tests-run playwright-tests:ci
+          docker run --name playwright-tests-run \
+            -e BUILD_SHA=${{ github.sha }} \
+            -e BUILD_ACTOR=${{ github.actor }} \
+            -e BUILD_TIME=$(date) \
+            playwright-tests:ci
           test_status=$?
+
           docker cp playwright-tests-run:/app/logs/. logs/ || true
+          docker cp playwright-tests-run:/app/metadata.txt logs/ || true
+
           docker rm playwright-tests-run
+
           exit $test_status
 
       - name: Upload test logs
@@ -50,6 +68,47 @@ jobs:
         with:
           name: test-logs
           path: logs/
+          if-no-files-found: ignore
+
+      - name: Detect flaky tests
+        if: always()
+        run: |
+          mkdir -p flaky
+          if grep -R "RERUN" logs/; then
+            echo "Flaky tests detected"
+            grep -R "RERUN" logs/ > flaky/flaky_tests.txt
+          else
+            echo "No flaky tests"
+            echo "None" > flaky/flaky_tests.txt
+          fi
+
+      - name: Upload flaky test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-tests
+          path: flaky/
+          if-no-files-found: ignore
+
+      - name: Update quarantine list
+        if: always()
+        run: |
+          mkdir -p quarantine
+          touch quarantine/quarantined_tests.txt
+
+          if grep -R "RERUN" logs/; then
+            echo "Updating quarantine list"
+            grep -R "RERUN" logs/ | awk '{print $NF}' >> quarantine/quarantined_tests.txt
+          fi
+
+          sort -u quarantine/quarantined_tests.txt -o quarantine/quarantined_tests.txt
+
+      - name: Upload quarantine list
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarantine
+          path: quarantine/
           if-no-files-found: ignore
 
   push-image:
@@ -68,4 +127,3 @@ jobs:
 
       - name: Push image to GHCR
         run: docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:latest
-
