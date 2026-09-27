@@ -3,13 +3,18 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - "*"        # run CI on all branches
-      - "!main"    # but ignore direct pushes to main
+      - "*"
+      - "!main"
   pull_request:
     branches:
-      - main       # run CI when PR targets main
+      - main
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
+
   tests:
     runs-on: ubuntu-latest
 
@@ -17,11 +22,44 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Docker image
-        run: docker build -t playwright-tests:ci .
+      # Create quarantine file if missing (prevents artifact download errors)
+      - name: Prepare quarantine file
+        run: |
+          mkdir -p quarantine
+          if [ ! -f quarantine/quarantined_tests.txt ]; then
+            echo "" > quarantine/quarantined_tests.txt
+          fi
 
-      - name: Run Playwright tests inside Docker
-        run: docker run --rm playwright-tests:ci
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Pull cached image
+        run: docker pull ghcr.io/${{ github.repository_owner }}/playwright-tests:latest || echo "No cache found"
+
+      - name: Build Docker image using GHCR cache
+        run: |
+          docker build \
+            --cache-from ghcr.io/${{ github.repository_owner }}/playwright-tests:latest \
+            --build-arg GIT_SHA=${{ github.sha }} \
+            -t playwright-tests:ci .
+
+      - name: Run Playwright tests
+        run: |
+          mkdir -p logs
+
+          set +e
+          docker run --name playwright-tests-run \
+            -e BUILD_SHA=${{ github.sha }} \
+            -e BUILD_ACTOR=${{ github.actor }} \
+            playwright-tests:ci
+          test_status=$?
+
+          docker cp playwright-tests-run:/app/logs/. logs/ || true
+          docker cp playwright-tests-run:/app/metadata.txt logs/ || true
+
+          docker rm playwright-tests-run
+
+          exit $test_status
 
       - name: Upload test logs
         if: always()
@@ -31,27 +69,88 @@ jobs:
           path: logs/
           if-no-files-found: ignore
 
-  ai-analysis:
+      - name: Detect flaky tests
+        if: always()
+        run: |
+          mkdir -p flaky
+          if grep -R "RERUN" logs/; then
+            echo "Flaky tests detected"
+            grep -R "RERUN" logs/ > flaky/flaky_tests.txt
+          else
+            echo "None" > flaky/flaky_tests.txt
+          fi
+
+      - name: Upload flaky test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-tests
+          path: flaky/
+          if-no-files-found: ignore
+
+      - name: Update quarantine list
+        if: always()
+        run: |
+          mkdir -p quarantine
+          touch quarantine/quarantined_tests.txt
+
+          if grep -R "RERUN" logs/; then
+            echo "Updating quarantine list"
+            grep -R "RERUN" logs/ | awk '{print $NF}' >> quarantine/quarantined_tests.txt
+          fi
+
+          sort -u quarantine/quarantined_tests.txt -o quarantine/quarantined_tests.txt
+
+      - name: Upload quarantine list
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarantine
+          path: quarantine/
+          if-no-files-found: ignore
+
+  push-image:
     needs: tests
     runs-on: ubuntu-latest
-    if: failure()   # AI runs only when tests fail
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download test logs
-        uses: actions/download-artifact@v4
-        with:
-          name: test-logs
-          path: logs/
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      - name: AI Failure Analysis
-        uses: azure/ai-assistant-action@v1
+      - name: Build image
+        run: |
+          docker build -t playwright-tests:ci .
+
+          # Tag with SHA (immutable)
+          docker tag playwright-tests:ci ghcr.io/${{ github.repository_owner }}/playwright-tests:sha-${{ github.sha }}
+
+          # Tag with branch
+          docker tag playwright-tests:ci ghcr.io/${{ github.repository_owner }}/playwright-tests:main
+
+          # Tag with latest
+          docker tag playwright-tests:ci ghcr.io/${{ github.repository_owner }}/playwright-tests:latest
+
+      - name: Push SHA tag
+        run: docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:sha-${{ github.sha }}
+
+      - name: Push main tag
+        run: docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:main
+
+      - name: Push latest tag
+        run: docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:latest
+
+      - name: Extract GHCR digest
+        id: digest
+        run: |
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/${{ github.repository_owner }}/playwright-tests:sha-${{ github.sha }})
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          echo "$DIGEST" > digest.txt
+
+      - name: Upload digest artifact
+        uses: actions/upload-artifact@v4
         with:
-          input: |
-            Analyze Playwright test failures.
-            Summarize logs.
-            Identify root causes.
-            Suggest fixes.
-            Validate CI pipeline steps.
+          name: image-digest
+          path: digest.txt

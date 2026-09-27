@@ -7,6 +7,8 @@ logger = get_logger()
 def test_google(page):
     logger.info("Starting test_google")
 
+
+    # This line will never be reached, but it's fine
     page.goto("https://google.com")
     logger.info("Navigated to google.com")
 

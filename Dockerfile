@@ -27,7 +27,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Playwright browsers AS ROOT
-RUN playwright install --with-deps
+RUN playwright install --with-deps chromium
 
 # Create non-root user
 RUN useradd -m pwuser
@@ -37,16 +37,24 @@ RUN mkdir -p /home/pwuser/.cache/ms-playwright \
     && cp -r /root/.cache/ms-playwright/* /home/pwuser/.cache/ms-playwright/ \
     && chown -R pwuser:pwuser /home/pwuser/.cache
 
+# Create logs directory
+RUN mkdir -p /app/logs && chmod -R 777 /app/logs
+
+# Create quarantine directory
+RUN mkdir -p /app/quarantine && chmod -R 777 /app/quarantine
+
 # Copy project code
 COPY src/ /app/src/
 COPY tests/ /app/tests/
 COPY pytest.ini /app/pytest.ini
 
-
-# Fix permissions for project folder
+# Fix permissions
 RUN chown -R pwuser:pwuser /app
 
-# Switch to non-root user
+# Metadata
+RUN echo "BUILD_TIME=$(date)" > /app/metadata.txt \
+    && echo "BROWSER=chromium" >> /app/metadata.txt
+
 USER pwuser
 
 CMD ["pytest", "-q"]
