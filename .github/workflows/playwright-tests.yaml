@@ -22,12 +22,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download quarantine file (if exists)
-        uses: actions/download-artifact@v4
-        with:
-          name: quarantine
-          path: quarantine/
-        continue-on-error: true
+      # Instead of downloading quarantine (which may not exist),
+      # we create an empty quarantine file if missing.
+      - name: Prepare quarantine file
+        run: |
+          mkdir -p quarantine
+          if [ ! -f quarantine/quarantined_tests.txt ]; then
+            echo "No previous quarantine file found. Creating empty file."
+            echo "" > quarantine/quarantined_tests.txt
+          fi
 
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
@@ -76,7 +79,6 @@ jobs:
             echo "Flaky tests detected"
             grep -R "RERUN" logs/ > flaky/flaky_tests.txt
           else
-            echo "No flaky tests"
             echo "None" > flaky/flaky_tests.txt
           fi
 
