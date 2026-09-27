@@ -145,3 +145,18 @@ jobs:
       # Push latest last
       - name: Push latest tag
         run: docker push ghcr.io/${{ github.repository_owner }}/playwright-tests:latest
+
+      - name: Extract GHCR digest
+        id: digest
+        run: |
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/${{ github.repository_owner }}/playwright-tests:sha-${{ github.sha }})
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          echo "Image Digest: $DIGEST"
+
+      - name: Upload digest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-digest
+          path: digest.txt
+        run: |
+          echo "${{ steps.digest.outputs.digest }}" > digest.txt
