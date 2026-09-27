@@ -8,7 +8,7 @@ def get_logger():
     logger = logging.getLogger("playwright-tests")
     logger.setLevel(logging.INFO)
 
-    # Console output (shows logs in terminal + CI)
+    #  Console output (shows logs in terminal + CI)
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
 
